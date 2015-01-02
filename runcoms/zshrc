@@ -1,13 +1,374 @@
-#
-# Executes commands at the start of an interactive session.
-#
-# Authors:
-#   Sorin Ionescu <sorin.ionescu@gmail.com>
-#
-
-# Source Prezto.
+# source Prezto
 if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
   source "${ZDOTDIR:-$HOME}/.zprezto/init.zsh"
 fi
 
-# Customize to your needs...
+# customization below
+
+function work(){
+  if [[ "$TMUX" == "" ]]; then
+    tmux attach -t work || tmux new -s work
+    exit 0
+  fi
+}
+
+function monitor(){
+  if [[ "$TMUX" == "" ]]; then
+    tmux attach -t monitor || tmux new -s monitor
+    exit 0
+  fi
+}
+
+CASE_SENSITIVE="true"
+DISABLE_UPDATE_PROMPT=true
+
+# color
+export TERM=xterm-256color
+# remote hosts completion [1]
+#[ -f ~/.ssh/config ] && : ${(A)ssh_config_hosts:=${${${${(@M)${(f)"$(<~/.ssh/config)"}:#Host *}#Host }:#*\**}:#*\?*}}
+[ -f ~/.ssh/known_hosts ] && : ${(A)ssh_known_hosts:=${${${(f)"$(<$HOME/.ssh/known_hosts)"}%%\ *}%%,*}}
+[ -f ~/.ssh/work_hosts ] && : ${(A)work_hosts:=${${${(f)"$(<$HOME/.ssh/work_hosts)"}%%\ *}%%,*}}
+[ -f ~/.ssh/work_net_hosts ] && : ${(A)work_net_hosts:=${${${(f)"$(<$HOME/.ssh/work_net_hosts)"}%%\ *}%%,*}}
+zstyle ':completion:*:hosts' hosts $ssh_known_hosts $work_net_hosts $work_hosts
+# [1] http://blog.jhr-online.de/290
+
+setopt auto_pushd
+
+# remote hosts, remote item completion
+# ssh, scp, ping, host
+zstyle ':completion:*:scp:*' tag-order \
+      'hosts:-host hosts:-domain:domain hosts:-ipaddr:IP\ address *'
+zstyle ':completion:*:scp:*' group-order \
+      users files all-files hosts-domain hosts-host hosts-ipaddr
+zstyle ':completion:*:ssh:*' tag-order \
+      users 'hosts:-host hosts:-domain:domain hosts:-ipaddr:IP\ address *'
+zstyle ':completion:*:ssh:*' group-order \
+      hosts-domain hosts-host users hosts-ipaddr
+zstyle ':completion:*:(ssh|scp):*:hosts-host' ignored-patterns \
+      '*.*' loopback localhost
+zstyle ':completion:*:(ssh|scp):*:hosts-domain' ignored-patterns \
+      '<->.<->.<->.<->' '^*.*' '*@*'
+zstyle ':completion:*:(ssh|scp):*:hosts-ipaddr' ignored-patterns \
+      '^<->.<->.<->.<->' '127.0.0.<->'
+zstyle ':completion:*:(ssh|scp):*:users' ignored-patterns \
+      adm bin daemon halt lp named shutdown sync
+
+set -o vi
+# 10ms for key sequences
+export KEYTIMEOUT=1
+
+# reference http://zshwiki.org/home/zle/bindkeys
+bindkey -v
+bindkey -M viins 'jj' vi-cmd-mode
+
+bindkey '^P' up-history
+bindkey '^N' down-history
+
+bindkey '^a' beginning-of-line
+bindkey '^e' end-of-line
+
+# backspace and ^h working even after
+# returning from command mode
+bindkey '^?' backward-delete-char
+bindkey '^h' backward-delete-char
+
+# ctrl-w removed word backwards
+bindkey '^w' backward-kill-word
+
+# ctrl-r starts searching history backward
+bindkey '^r' history-incremental-search-backward
+
+FIGNORE=".o:~"
+HISTFILE=~/.zsh_history
+HISTSIZE=5000
+LISTMAX=0
+LOGCHECK=300
+MAILCHECK=0
+REPORTTIME=60
+SAVEHIST=3000
+
+alias vi=vim
+alias bc="bc -l"
+alias rdns="getent hosts"
+alias mirror="wget --mirror --no-parent --convert-links"
+alias pass="pwgen -s -1 -y"
+alias grep='grep --color=tty -d skip'
+alias egrep='egrep --color=tty -d skip'
+alias cal=ccal
+alias -g L=' | less'
+alias -g WL=' | wc -l'
+alias -g WC=' | wc -c'
+
+function cwhois(){ /usr/bin/whois -h whois.cymru.com " -v $1"}
+
+# serial/usb interfaces,  to kill type control-A (or W), then control-\
+# http://www.tigoe.net/pcomp/resources/archives/avr/000749.shtml
+#alias serial="screen /dev/tty.KeySerial1 9600"
+alias serial="sudo screen /dev/tty.usbserial 9600"
+alias picocom='picocom -b 115200 --send-cmd "sx -vv" /dev/tty.usbserial'
+
+# gpg things
+alias _sgpg='gpg --search-key'
+alias gpgmaster='gpg --home=$PRIVATE'
+
+# search for the last process that started and kill it
+function rogue() {
+  ssh $1 'PROCESS='st-catcher.pl'; ST=$(ps -eo pid,etime,cmd --sort=etime | grep $PROCESS | grep -v grep) ; if [ $(echo $ST | wc -l) -gt 0 ] ; then echo sudo "kill" $(echo $ST | head -n 1| awk '{print $1}'); fi'
+}
+
+function brewup()
+{
+  brew update
+  brwe upgrade brew-cask
+  brew unlink $(brew outdated)
+  brew install $(brew outdated)
+  brew cleanup
+  brew cask cleanup
+}
+
+function rproxy() {
+  ssh -L 127.0.0.1:8181:$2 -N root@$1
+}
+
+function http() {sudo python -m SimpleHTTPServer $1}
+function kd() {kitchen destroy $1}
+function kc() {kitchen converge $1}
+function kl() {kitchen login $1}
+function kt() {kitchen test $1}
+
+function pssh() { xargs -P 5 -I {} ssh root@{} "$1" ; echo $1 }
+
+function sshi()
+{
+   echo $1 | awk -F'@' '{print $1}' | xargs ssh-keygen -R > /dev/null 2>&1
+   /usr/bin/ssh $@
+}
+
+function whatismyip() { curl ipecho.net/plain }
+
+function ami() { dig +short x86_64.ami.$@ TXT | xargs -I {} echo {} }
+
+function brewup()
+{
+   brew update
+   brew unlink $(brew outdated)
+   brew install $(brew outdated)
+   brew cleanup
+}
+
+function ruby-init()
+{
+  if test -z "$1" ; then
+    echo "Project name empty"
+  else
+    echo "gem install ore # unless already installed"
+    mine $1 --bundler --git --rspec
+  fi
+}
+
+function initgemset() { echo './.gems' > .rbenv-gemsets }
+
+function dot2png() { dot -Tpng $1 > $1.png }
+
+function dot2pdf() { dot -Tpdf $1 > $1.pdf }
+
+function vmreset()
+{
+    actual_exit_code=$?
+    set +e
+    vagrant destroy --force
+    vagrant up
+}
+
+function kitchen-template-init()
+{
+  SRC="$HOME/Dropbox/src/kitchen-template"
+  items=(Berksfile Gemfile chefignore .kitchen.yml .gitignore .rubocop.yml .travis.yml Rakefile kitchen.openstack.local.yml)
+  for i in $items; do
+    cp $SRC/$i ./
+    git add $i
+  done
+  echo "git commit ${items[@]} -m \"adding test-kitchen toolkit\""
+}
+
+function di()
+{
+  echo "aws ec2 describe-instances --instance-ids $1"
+  aws ec2 describe-instances --instance-ids $1
+}
+
+function nack() { vim -c "Nack $*" }
+
+function dsg()
+{
+  echo "make sure group-id is used"
+  echo "aws ec2 describe-security-groups --filters Name==group-name, Values=$1"
+  aws ec2 describe-security-groups --filters Name=group-name, Values="$1"
+}
+
+function asg()
+{
+  echo "aws ec2 authorize-security-group-ingress --group-id $1 --protocol tcp --port $2 --cidr $3"
+  aws ec2 authorize-security-group-ingress --group-id $1 --protocol tcp --port $2 --cidr $3 --region $4
+}
+
+# Show the path from a symlink to its ultimate source.
+folsym() {
+    if [[ -e $1 || -h $1 ]]; then
+   file=$1
+    else
+   file=`which $1`
+    fi
+    if [[ -e $file || -L $file ]]; then
+   if [[ -L $file ]]; then
+       echo `ls -ld $file | perl -ane 'print $F[7]'` '->'
+       folsym `perl -le '$file = $ARGV[0];
+               $dest = readlink $file;
+               if ($dest !~ m{^/}) {
+              $file =~ s{(/?)[^/]*$}{$1$dest};
+               } else {
+              $file = $dest;
+               }
+               $file =~ s{/{2,}}{/}g;
+               while ($file =~ s{[^/]+/\.\./}{}) {
+              ;
+               }
+               $file =~ s{^(/\.\.)+}{};
+               print $file' $file`
+
+   else
+       ls -d $file
+   fi
+    else
+   echo $file
+    fi
+}
+
+# Remove useless files
+clean () {
+    if [ "$1" = "-r" ]; then
+   find . \( -name '#*' -o -name '*~' -o -name '.*~' -o -name 'core*' \
+             -o -name 'dead*' \) -ok rm '{}' ';'
+    else
+   rm -i \#* *~ .*~ core* dead*
+    fi
+}
+
+# remotely turn on apple sharing
+alias arm= 'sudo /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart -activate -configure -access -on -  users admin -privs -all -clientopts -setvncpw -vncpw PASSWORD -restart -agent -menu'
+
+#To print all IPv4 HTTP packets to and from port 80, i.e. print only packets that contain data, not, for example, SYN and FIN packets and    ACK-only packets.
+# alias dumphttp="tcpdump -i "$1" "$2" 'tcp port 80 and (((ip[2:2] - ((ip[0]&0xf)<<2)) - ((tcp[12]&0xf0)>>2)) != 0)'"
+
+# http://blog.jasonantman.com/2010/04/dhcp-debugging-and-handy-tcpdump-filters/
+alias dumpdhcp="tcpdump -i "$1" "$2" '((port 67 or port 68)'"
+alias ss="ss -ieomn"
+alias tc="tc -s -d qdisc ls dev $1"
+alias ipcache="ip route flush table cache"
+
+function tcp_probe { modprobe tcp_probe port=$1 && cat /proc/net/tcpprobe >/tmp/data.out & }
+#[1]http://www.linuxfoundation.org/collaborate/workgroups/networking/tcpprobe
+# tcpdump -nnvvXSs 1514 -c2 icmp #grab payload (X) and packet size
+# tcpdump/tcptrace/xplot
+# tcpdump -i eth2 -s 100 -w /tmp/tcpdump.out host hostname
+# (or on solaris: snoop -s 100 -o /tmp/tcpdump.out dest host hostname )
+# tcptrace -Sl /tmp/tcpdump.out
+# xplot /tmp/a2b_tsg.xpl
+function tcpread {tcpdump -lenxvvvttttnnr $1}
+
+# GIT
+alias gb='git branch'
+alias gba='git branch -a'
+function ga { git add $1}
+function gc { git commit -m "$1" }
+alias gd='git diff'
+alias gu='git pull'
+alias gp='git push'
+alias gst='git status'
+eval "$(hub alias -s)"
+
+# Removing git submodule foo
+# git submodule deinit foo
+# rm -rf .git/modules/foo
+# git commit -m "Removed submodule foo"
+
+alias lock="git-crypt lock"
+alias unlock="git-crypt unlock"
+
+function kniferecipe(){
+  knife-sjc1 exec -E 'nodes.find(:name => "'$1'").each { |n| n.run_list << "'$2'"; n.save }'
+}
+
+function knifetransform(){
+  knife-sjc1 exec -E 'nodes.transform(:all) {|n| n.chef_environment("'$1'")}'
+}
+
+function chefsum() { shasum -a 256 $1 }
+
+export EC2_URL="https://ec2.us-east-1.amazonaws.com"
+alias ec2useast1="export EC2_URL=https://ec2.us-east-1.amazonaws.com"
+alias ec2uswest2="export EC2_URL=https://ec2.us-west-2.amazonaws.com"
+alias ec2uswest1="export EC2_URL=https://ec2.us-west-1.amazonaws.com"
+alias ec2euwest1="export EC2_URL=https://ec2.eu-west-1.amazonaws.com"
+alias ec2apsoutheast1="export EC2_URL=https://ec2.ap-southeast-1.amazonaws.com"
+alias ec2apsoutheast2="export EC2_URL=https://ec2.ap-southeast-2.amazonaws.com"
+alias ec2apnortheast1="export EC2_URL=https://ec2.ap-northeast-1.amazonaws.com"
+alias ec2saeast1="export EC2_URL=https://ec2.sa-east-1.amazonaws.com"
+
+export AWS_DEFAULT_REGION=us-east-1
+alias ec2east='export AWS_DEFAULT_REGION=us-east-1'
+alias ec2eu='export AWS_DEFAULT_REGION=eu-west-1'
+alias ec2ap='export AWS_DEFAULT_REGION=ap-northeast-1'
+
+# fastly
+alias rancid="ssh net-rancid-sv1"
+
+# PATH and more path
+export USER_PATH=$HOME/bin:/sbin
+export LOCAL_PATH=/usr/local/bin:/usr/local/sbin:/usr/local/go/bin:/usr/local/go
+export OPT_PATH=$HOME/man:/opt/local/bin:/opt/local/sbin
+export MAILCONF=$HOME/.mutt
+export NOTMUCH=$HOME/.mutt/mutt-notmuch-py
+
+if [[ "$OSTYPE" == "linux-gnu" ]]; then
+  export JAVA_HOME=/usr/lib/jvm/java-1.7
+  export PROMPT_LOCAL="%n@%m"
+elif [[ "$OSTYPE" == "darwin"* ]]; then
+  export JAVA_HOME=$(/usr/libexec/java_home)
+  export PROMPT_LOCAL=""
+  export RVM=$HOME/.rvm/bin
+  export AWS_IAM_HOME=$HOME/IAMCli-1.5.0
+  export GOPATH=$HOME/src/go
+  export PATH=$LOCAL_PATH:$PATH:$USER_PATH:$OPT_PATH:$SSHFS_PATH:$JAVA_HOME:$AWS_IAM_HOME/bin:$NOTMUCH
+  export CPPFLAGS=-I/opt/X11/include
+else
+ # unknown
+fi
+
+# Chef variables
+export FASTLY_REPO_ROOT=$HOME/fastly
+export SRC_LOCAL=$HOME/src
+export WORKSPACE=$HOME/fastly
+export CHEF_REPO=$FASTLY_REPO_ROOT/Chef
+export CHEF_COOKBOOKS=$CHEF_REPO/cookbooks
+export CHEF_ENVIRONMENTS=$CHEF_REPO/environments
+export CHEF_SITE_COOKBOOKS=$CHEF_REPO/site-cookbooks
+export CHEF_DATA_BAGS=$CHEF_REPO/data_bags
+export SSL_CERT_FILE=/usr/local/etc/openssl/cert.pem
+
+export EDITOR=vim
+export VISUAL=vim
+alias gist='gist -c'
+alias reload='source $HOME/.zshrc'
+export NOTES_DIR=$HOME/Dropbox/notes
+
+#boot2docker
+export DOCKER_HOST=tcp://192.168.59.103:2376
+export DOCKER_CERT_PATH=/Users/bao/.boot2docker/certs/boot2docker-vm
+export DOCKER_TLS_VERIFY=1
+
+function vmstart() { vboxheadless --startvm $1 & }
+function pastoral() {bundle exec ./bin/pastoral ed -c $HOME/.credshed-config.rb $1}
+alias knownhosts="scp bastion-slsjc1:/etc/ssh/ssh_known_hosts ~/.ssh/work_hosts"
+source ~/.aws/fastly_credentials
+chruby ruby-2.1.3
