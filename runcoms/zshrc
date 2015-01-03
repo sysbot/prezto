@@ -292,6 +292,12 @@ eval "$(hub alias -s)"
 # rm -rf .git/modules/foo
 # git commit -m "Removed submodule foo"
 
+function cryptinit() {
+  git-crypt init
+  git add .gitattribute
+  git-crypt add-gpg-user 2CE87322
+}
+
 alias lock="git-crypt lock"
 alias unlock="git-crypt unlock"
 
@@ -304,6 +310,10 @@ function knifetransform(){
 }
 
 function chefsum() { shasum -a 256 $1 }
+
+alias gist='gist -c'
+alias reload='source $HOME/.zshrc'
+
 
 export EC2_URL="https://ec2.us-east-1.amazonaws.com"
 alias ec2useast1="export EC2_URL=https://ec2.us-east-1.amazonaws.com"
@@ -341,6 +351,7 @@ elif [[ "$OSTYPE" == "darwin"* ]]; then
   export GOPATH=$HOME/src/go
   export PATH=$LOCAL_PATH:$PATH:$USER_PATH:$OPT_PATH:$SSHFS_PATH:$JAVA_HOME:$AWS_IAM_HOME/bin:$NOTMUCH
   export CPPFLAGS=-I/opt/X11/include
+  export BACKUPDRIVE=/Volumes/tav1tb
 else
  # unknown
 fi
@@ -355,11 +366,9 @@ export CHEF_ENVIRONMENTS=$CHEF_REPO/environments
 export CHEF_SITE_COOKBOOKS=$CHEF_REPO/site-cookbooks
 export CHEF_DATA_BAGS=$CHEF_REPO/data_bags
 export SSL_CERT_FILE=/usr/local/etc/openssl/cert.pem
-
+export GNUPGHOME=$HOME/.gnupg
 export EDITOR=vim
 export VISUAL=vim
-alias gist='gist -c'
-alias reload='source $HOME/.zshrc'
 export NOTES_DIR=$HOME/Dropbox/notes
 
 #boot2docker
