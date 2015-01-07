@@ -302,11 +302,11 @@ alias lock="git-crypt lock"
 alias unlock="git-crypt unlock"
 
 function kniferecipe(){
-  knife-sjc1 exec -E 'nodes.find(:name => "'$1'").each { |n| n.run_list << "'$2'"; n.save }'
+  knife exec -E 'nodes.find(:name => "'$1'").each { |n| n.run_list << "'$2'"; n.save }'
 }
 
 function knifetransform(){
-  knife-sjc1 exec -E 'nodes.transform(:all) {|n| n.chef_environment("'$1'")}'
+  knife exec -E 'nodes.transform(:all) {|n| n.chef_environment("'$1'")}'
 }
 
 function chefsum() { shasum -a 256 $1 }
@@ -332,21 +332,17 @@ alias ec2ap='export AWS_DEFAULT_REGION=ap-northeast-1'
 
 # fastly
 alias rancid="ssh net-rancid-sv1"
+alias knownhosts="scp bastion-slsjc1:/etc/ssh/ssh_known_hosts ~/.ssh/work_hosts"
+function pastoral() {bundle exec ./bin/pastoral ed -c $HOME/.credshed-config.rb $1}
 
 # PATH and more path
 export USER_PATH=$HOME/bin:/sbin
 export LOCAL_PATH=/usr/local/bin:/usr/local/sbin:/usr/local/go/bin:/usr/local/go
 export OPT_PATH=$HOME/man:/opt/local/bin:/opt/local/sbin
-export MAILCONF=$HOME/.mutt
-export NOTMUCH=$HOME/.mutt/mutt-notmuch-py
 
-if [[ "$OSTYPE" == "linux-gnu" ]]; then
-  export JAVA_HOME=/usr/lib/jvm/java-1.7
-  export PROMPT_LOCAL="%n@%m"
-  export LINUXBREW=$HOME/.linuxbrew/bin
-  export MANPATH="$HOME/.linuxbrew/share/man:$MANPATH"
-  export INFOPATH="$HOME/.linuxbrew/share/info:$INFOPATH"
-elif [[ "$OSTYPE" == "darwin"* ]]; then
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  export MAILCONF=$HOME/.mutt
+  export NOTMUCH=$HOME/.mutt/mutt-notmuch-py
   export JAVA_HOME=$(/usr/libexec/java_home)
   export PROMPT_LOCAL=""
   export RVM=$HOME/.rvm/bin
@@ -354,8 +350,13 @@ elif [[ "$OSTYPE" == "darwin"* ]]; then
   export GOPATH=$HOME/src/go
   export CPPFLAGS=-I/opt/X11/include
   export BACKUPDRIVE=/Volumes/tav1tb
+  source ~/.aws/fastly_credentials
 else
- # unknown
+  export JAVA_HOME=/usr/lib/jvm/java-1.7
+  export PROMPT_LOCAL="%n@%m"
+  export LINUXBREW=$HOME/.linuxbrew/bin
+  export MANPATH="$HOME/.linuxbrew/share/man:$MANPATH"
+  export INFOPATH="$HOME/.linuxbrew/share/info:$INFOPATH"
 fi
 
 export PATH=$LOCAL_PATH:$PATH:$USER_PATH:$OPT_PATH:$SSHFS_PATH:$JAVA_HOME:$LINUXBREW:$AWS_IAM_HOME/bin:$NOTMUCH
@@ -381,7 +382,4 @@ export DOCKER_CERT_PATH=/Users/bao/.boot2docker/certs/boot2docker-vm
 export DOCKER_TLS_VERIFY=1
 
 function vmstart() { vboxheadless --startvm $1 & }
-function pastoral() {bundle exec ./bin/pastoral ed -c $HOME/.credshed-config.rb $1}
-alias knownhosts="scp bastion-slsjc1:/etc/ssh/ssh_known_hosts ~/.ssh/work_hosts"
-source ~/.aws/fastly_credentials
 chruby ruby-2.1.3
