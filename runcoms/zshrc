@@ -344,6 +344,8 @@ if [[ "$OSTYPE" == "linux-gnu" ]]; then
   export JAVA_HOME=/usr/lib/jvm/java-1.7
   export PROMPT_LOCAL="%n@%m"
   export LINUXBREW=$HOME/.linuxbrew/bin
+  export MANPATH="$HOME/.linuxbrew/share/man:$MANPATH"
+  export INFOPATH="$HOME/.linuxbrew/share/info:$INFOPATH"
 elif [[ "$OSTYPE" == "darwin"* ]]; then
   export JAVA_HOME=$(/usr/libexec/java_home)
   export PROMPT_LOCAL=""
