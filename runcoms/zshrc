@@ -294,7 +294,7 @@ eval "$(hub alias -s)"
 
 function cryptinit() {
   git-crypt init
-  git add .gitattribute
+  git add .gitattributes
   git-crypt add-gpg-user 2CE87322
 }
 
@@ -343,18 +343,20 @@ export NOTMUCH=$HOME/.mutt/mutt-notmuch-py
 if [[ "$OSTYPE" == "linux-gnu" ]]; then
   export JAVA_HOME=/usr/lib/jvm/java-1.7
   export PROMPT_LOCAL="%n@%m"
+  export LINUXBREW=$HOME/.linuxbrew/bin
 elif [[ "$OSTYPE" == "darwin"* ]]; then
   export JAVA_HOME=$(/usr/libexec/java_home)
   export PROMPT_LOCAL=""
   export RVM=$HOME/.rvm/bin
   export AWS_IAM_HOME=$HOME/IAMCli-1.5.0
   export GOPATH=$HOME/src/go
-  export PATH=$LOCAL_PATH:$PATH:$USER_PATH:$OPT_PATH:$SSHFS_PATH:$JAVA_HOME:$AWS_IAM_HOME/bin:$NOTMUCH
   export CPPFLAGS=-I/opt/X11/include
   export BACKUPDRIVE=/Volumes/tav1tb
 else
  # unknown
 fi
+
+export PATH=$LOCAL_PATH:$PATH:$USER_PATH:$OPT_PATH:$SSHFS_PATH:$JAVA_HOME:$LINUXBREW:$AWS_IAM_HOME/bin:$NOTMUCH
 
 # Chef variables
 export FASTLY_REPO_ROOT=$HOME/fastly
@@ -372,7 +374,7 @@ export VISUAL=vim
 export NOTES_DIR=$HOME/Dropbox/notes
 
 #boot2docker
-export DOCKER_HOST=tcp://192.168.59.103:2376
+export DOCKER_HOST=tcp://192.168.59.104:2376
 export DOCKER_CERT_PATH=/Users/bao/.boot2docker/certs/boot2docker-vm
 export DOCKER_TLS_VERIFY=1
 
