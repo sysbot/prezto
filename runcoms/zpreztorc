@@ -45,8 +45,10 @@ zstyle ':prezto:load' pmodule \
   'haskell' \
   'syntax-highlighting' \
   'tmux' \
-  'utility' \
   'prompt'
+
+# utility
+zstyle ':prezto:module:utility:ls' color 'yes'
 
 #
 # Editor
@@ -70,7 +72,7 @@ zstyle ':prezto:module:git:status:ignore' submodules 'all'
 #
 
 # Set the command prefix on non-GNU systems.
-# zstyle ':prezto:module:gnu-utility' prefix 'g'
+zstyle ':prezto:module:gnu-utility' prefix 'g'
 
 #
 # History Substring Search
@@ -123,7 +125,7 @@ zstyle ':prezto:module:ruby:chruby' auto-switch 'yes'
 #
 
 # Set the SSH identities to load into the agent.
-# zstyle ':prezto:module:ssh:load' identities 'id_rsa' 'id_rsa2' 'id_github'
+zstyle ':prezto:module:ssh:load' identities 'key_person' 'key_fastly'
 
 #
 # Syntax Highlighting
@@ -162,7 +164,7 @@ zstyle ':prezto:module:terminal:tab-title' format '%m: %s'
 #
 
 # Auto start a session when Zsh is launched in a local terminal.
-# zstyle ':prezto:module:tmux:auto-start' local 'yes'
+zstyle ':prezto:module:tmux:auto-start' local 'yes'
 
 # Auto start a session when Zsh is launched in a SSH connection.
-# zstyle ':prezto:module:tmux:auto-start' remote 'yes'
+zstyle ':prezto:module:tmux:auto-start' remote 'yes'

@@ -12,6 +12,11 @@ if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/runcoms/local_aliases" ]]; then
   source "${ZDOTDIR:-$HOME}/.zprezto/runcoms/local_aliases"
 fi
 
+function bump(){
+  knife cookbook upload $@
+  knife environment from file ~/fastly/Chef/environments/production.json
+}
+
 function work(){
   if [[ "$TMUX" == "" ]]; then
     tmux attach -t work || tmux new -s work
@@ -30,7 +35,8 @@ CASE_SENSITIVE="true"
 DISABLE_UPDATE_PROMPT=true
 
 # color
-export TERM=screen-256color
+export TERM=rxvt
+# export TERM=screen-256color
 # remote hosts completion [1]
 #[ -f ~/.ssh/config ] && : ${(A)ssh_config_hosts:=${${${${(@M)${(f)"$(<~/.ssh/config)"}:#Host *}#Host }:#*\**}:#*\?*}}
 [ -f ~/.ssh/known_hosts ] && : ${(A)ssh_known_hosts:=${${${(f)"$(<$HOME/.ssh/known_hosts)"}%%\ *}%%,*}}
@@ -107,7 +113,10 @@ function replace()
     ack -l $1 | xargs perl -pi -E 's/'$1'/'$2'/g'
   fi
 }
-alias vi='vim'
+
+function vi() {mvim -v -u ~/.vimrc.min $@}
+function vim() {mvim $@}
+alias rick="cd $GOPATH/src/github.com/fastly/rickshaw"
 alias bc="bc -l"
 alias rdns="getent hosts"
 alias mirror="wget --mirror --no-parent --convert-links"
@@ -118,10 +127,9 @@ alias cal=ccal
 alias -g L=' | less'
 alias -g WL=' | wc -l'
 alias -g WC=' | wc -c'
-#alias ll='ls -ltra'
 alias tmux='TERM=screen-256color tmux'
 function cwhois(){ /usr/bin/whois -h whois.cymru.com " -v $1"}
-alias gosrc="cd $GOPATH/src/github.com"
+alias gosrc="cd $GOPATH/src/github.com/fastly/"
 alias sha1sum='shasum'
 function og(){ grep -rn "$1" *}
 
@@ -154,7 +162,7 @@ function up {
 }
 
 alias m='more'
-function l(){ tree -L 1 -CDFha --du --dirsfirst $@; }
+function l(){ tree -L 1 -CDFha --du $@ }
 function ll(){ l -L 2 $@; }
 function lll(){ l -L 3 $@; }
 
@@ -267,6 +275,9 @@ folsym() {
    if [[ -L $file ]]; then
        echo `ls -ld $file | perl -ane 'print $F[7]'` '->'
        folsym `perl -le '$file = $ARGV[0];
+
+ls
+ls -ltra
                $dest = readlink $file;
                if ($dest !~ m{^/}) {
               $file =~ s{(/?)[^/]*$}{$1$dest};
@@ -380,8 +391,8 @@ function checksum() { shasum -a 256 $1 }
 alias gist='gist -c'
 alias reload='source $HOME/.zshrc'
 alias z='vi $HOME/.zshrc'
-alias a='vi $HOME/.zprezto/runcoms/aliases'
-alias var='$HOME/.zprezto/runcoms/local_env'
+alias a='vi $HOME/.zprezto/runcoms/local_aliases'
+#alias e='vi $HOME/.zprezto/runcoms/local_env'
 alias kitchen-init='~/src/kitchen-template/init.sh'
 
 function fastkitchen() { cp -r ~/fastly/fst-kitchen/* ./; cp -r ~/fastly/fst-kitchen/.kitchen.yml ./ }
@@ -441,3 +452,26 @@ function h() { heroku ${@} }
 chruby ruby-2.1.3
 
 eval "$(chef shell-init zsh)"
+
+export RICKSHAW_USER='sysbot'
+export RICKSHAW_KEY='/Users/bao/.chef/sysbot.pem'
+
+
+# aad zsh-syntax-highlighting.
+source ~/.zprezto/modules/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+
+# Load zsh-autosuggestions.
+source ~/.zprezto/modules/zsh-autosuggestions/autosuggestions.zsh
+#
+# Enable autosuggestions automatically.
+zle-line-init() {
+  zle autosuggest-start
+}
+zle -N zle-line-init
+
+# accept suggestions without leaving insert mode
+bindkey '^f' vi-forward-word
+# or
+#
+bindkey '^f' vi-forward-blank-word
+bindkey "^I" expand-or-complete

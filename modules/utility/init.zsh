@@ -90,8 +90,12 @@ else
   fi
 fi
 
-alias l='ls -1A'         # Lists in one column, hidden files.
-alias ll='ls -lh'        # Lists human readable sizes.
+#alias l='ls -1A'         # Lists in one column, hidden files.
+#alias ll='ls -lh'        # Lists human readable sizes.
+alias l='tree -L 1 -CDFha --du'
+alias ll='l -L 2'
+alias lll='l -L 3'
+alias llll='l -L 4'
 alias lr='ll -R'         # Lists human readable sizes, recursively.
 alias la='ll -A'         # Lists human readable sizes, hidden files.
 alias lm='la | "$PAGER"' # Lists human readable sizes, hidden files through pager.
