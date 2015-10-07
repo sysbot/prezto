@@ -1,4 +1,4 @@
-# source Prezto
+#q source Prezto
 if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
   source "${ZDOTDIR:-$HOME}/.zprezto/init.zsh"
 fi
@@ -12,9 +12,45 @@ if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/runcoms/local_aliases" ]]; then
   source "${ZDOTDIR:-$HOME}/.zprezto/runcoms/local_aliases"
 fi
 
-function bump(){
+function bb(){
   knife cookbook upload $@
-  knife environment from file ~/fastly/Chef/environments/production.json
+  #knife environment from file ~/fastly/Chef/environments/production.json
+}
+
+function runchef(){
+  knife ssh "name:$@" 'sudo chef-client'
+}
+
+function cachechef(){
+  knife ssh "name:$@" 'curl https://gist.githubusercontent.com/sysbot/0a5e701f853665e18a97/raw/bc2046201e3389f075d97c49dcb8b1bb5bada824/migrate | sudo bash && sudo svctl host disable "manualy disable to run chef" && sleep 30 && sudo chef-client && sudo svctl host enable && varnishadm param.set close_client_connections off'
+}
+
+function cacheenable() {
+  ssh $@ 'sudo svctl host enable; varnishadm param.set close_client_connections off'
+}
+
+function cachedisable() {
+  ssh $@ 'sudo svctl host disable "manually disable for chef run"'
+}
+
+function bt(){
+  if [ -e "$HOME/fastly/Chef/cookbooks/$@/metadata.rb" ]; then
+    gsed -i "s/version.*/version \'0.0.2071\'/" $HOME/fastly/Chef/cookbooks/$@/metadata.rb
+  fi
+
+  if [ $? -eq 0 ]; then
+    knife cookbook upload $@
+  fi
+}
+
+function cmdinstallpkg(){
+  # http://apple.stackexchange.com/questions/75684/installing-xcode-via-command-line
+  if [ -a $1 ]; then
+    local name=`echo $1 | tr -d '.pkg|.dmg'`
+    hdiutil attach $1 && cd /Volumes/$name && sudo installer -pkg $name.mpkg -target / && cd - && hdiutil detach /Volumes/$name && rm $1
+  else
+    echo "Must be in the same dir as the package/dmg file"
+  fi
 }
 
 function work(){
@@ -68,7 +104,7 @@ zstyle ':completion:*:(ssh|scp):*:users' ignored-patterns \
 
 set -o vi
 # 40ms for key sequences
-export KEYTIMEOUT=4
+export KEYTIMEOUT=6
 
 # reference http://zshwiki.org/home/zle/bindkeys
 bindkey -v
@@ -117,6 +153,7 @@ function replace()
 function vi() {mvim -v -u ~/.vimrc.min $@}
 function vim() {mvim $@}
 alias rick="cd $GOPATH/src/github.com/fastly/rickshaw"
+alias t="cd ~/repos/gotest"
 alias bc="bc -l"
 alias rdns="getent hosts"
 alias mirror="wget --mirror --no-parent --convert-links"
@@ -186,7 +223,7 @@ function rogue() {
 function brewup()
 {
   brew update
-  brwe upgrade brew-cask
+  brew upgrade brew-cask
   brew unlink $(brew outdated)
   brew install $(brew outdated)
   brew cleanup
@@ -213,6 +250,12 @@ function sshi()
 {
    echo $1 | awk -F'@' '{print $1}' | xargs ssh-keygen -R > /dev/null 2>&1
    /usr/bin/ssh $@
+}
+
+alias logchef='log "chef"'
+
+function log() {
+  ssh log-sjc320024 "tail -f /data/log/user/current | grep $@"
 }
 
 function whatismyip() { curl ipecho.net/plain }
@@ -336,6 +379,7 @@ function ga { git add ${@}}
 # https://ariejan.net/2009/10/26/how-to-create-and-apply-a-patch-with-git/
 function gpatch { git format-patch $1 --stdout > $2}
 
+function gcm { git commit . -m "$@" }
 alias gc='git commit -p'
 alias gm='git checkout master && git pull'
 alias d='git diff'
@@ -347,6 +391,8 @@ alias gb='git checkout -b "`whoami`/fix-`date +%Y%m%d`"'
 alias gpp='git push origin HEAD && git pull-request'
 alias gs='git sum'
 alias g='git status -sb'
+# http://stackoverflow.com/questions/5188320/how-can-i-get-a-list-of-git-branches-ordered-by-most-recent-commit
+alias gbl='git for-each-ref --count=30 --sort=-committerdate refs/heads/ --format="%(refname:short)"'
 
 eval "$(hub alias -s)"
 # Removing git submodule foo
@@ -392,6 +438,8 @@ alias gist='gist -c'
 alias reload='source $HOME/.zshrc'
 alias z='vi $HOME/.zshrc'
 alias a='vi $HOME/.zprezto/runcoms/local_aliases'
+alias w='vi $HOME/repos/journal/work'
+alias p='vi $HOME/repos/journal/personal'
 #alias e='vi $HOME/.zprezto/runcoms/local_env'
 alias kitchen-init='~/src/kitchen-template/init.sh'
 
@@ -414,7 +462,7 @@ alias ec2ap='export AWS_DEFAULT_REGION=ap-northeast-1'
 
 # fastly
 alias rancid="ssh net-rancid-sv1"
-alias knownhosts="scp bastion-slsjc1:/etc/ssh/ssh_known_hosts ~/.ssh/work_hosts"
+alias knownhosts="scp bastion-slsjc1.hosts.fastly.net:/etc/ssh/ssh_known_hosts ~/.ssh/work_hosts"
 function pastoral() {bundle exec $HOME/fastly/pastoral/bin/pastoral ed -c $HOME/.credshed-config.rb $1}
 function jenkin_rm() {
   WS="/var/lib/jenkins/jenkins/workspace"
@@ -430,14 +478,21 @@ function jenkin_rm() {
   fi
 }
 
+alias sf="ssh util-sf5.hosts.fastly.net"
+alias loaner="ssh 10.100.20.42"
+alias fw="fw1"
+alias e2="nedge2"
+alias e1="nedge1"
 alias nedge1="TERM=vt100 ssh bao@10.100.200.21"
 alias nedge2="TERM=vt100 ssh bao@10.100.200.22"
+alias fw="fw1"
 alias fw1="TERM=vt100 ssh bao@10.100.200.23"
 alias fw2="TERM=vt100 ssh bao@10.100.200.24"
 alias core1="ssh bao@10.100.200.2"
-alias core2="ssh bao@10.100.200.3"
-alias edge1="ssh bao@10.100.200.11"
-alias edge2="ssh bao@10.100.200.12"
+alias ocore2="ssh bao@10.100.200.3"
+alias core2="ssh bao@10.100.200.5"
+alias oedge1="ssh bao@10.100.200.11"
+alias oedge2="ssh bao@10.100.200.12"
 alias asa1="ssh bao@10.100.200.15"
 alias asa2="ssh bao@10.100.200.16"
 alias transit1="ssh bao@10.100.200.17"
@@ -458,6 +513,7 @@ export RICKSHAW_KEY='/Users/bao/.chef/sysbot.pem'
 
 
 # aad zsh-syntax-highlighting.
+# https://github.com/tarruda/zsh-autosuggestions
 source ~/.zprezto/modules/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
 # Load zsh-autosuggestions.
