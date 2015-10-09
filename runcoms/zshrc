@@ -4,16 +4,15 @@ if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
 fi
 
 # local env, only atttempting to load these if not installed as minimal 
-if [[ ! -s "${ZDOTDIR:-$HOME}/.minimal_shell" ]]; then
-  if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/runcoms/local_env" ]]; then
+if [[ ! -e "${ZDOTDIR:-$HOME}/.minimal_shell" ]]; then
+  if [[ -e "${ZDOTDIR:-$HOME}/.zprezto/runcoms/local_env" ]]; then
     source "${ZDOTDIR:-$HOME}/.zprezto/runcoms/local_env"
   fi
   # aliases
-  if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/runcoms/local_aliases" ]]; then
+  if [[ -e "${ZDOTDIR:-$HOME}/.zprezto/runcoms/local_aliases" ]]; then
     source "${ZDOTDIR:-$HOME}/.zprezto/runcoms/local_aliases"
   fi
 fi
-
 
 function cmdinstallpkg(){
   # http://apple.stackexchange.com/questions/75684/installing-xcode-via-command-line
