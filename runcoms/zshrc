@@ -5,8 +5,7 @@ export OPT_PATH=$HOME/man:/opt/local/bin:/opt/local/sbin
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
   eval "$(hub alias -s)"
-  chruby ruby-2.1.3
-  eval "$(chef shell-init zsh)"
+  eval "$(shell-init zsh)"
   export EDITOR='mvim -v -u ~/.vimrc.min'
   export VISTUAL='vim -f'
   export MAILCONF=$HOME/.mutt
