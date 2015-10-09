@@ -1,3 +1,48 @@
+# BASIC path
+export USER_PATH=$HOME/bin:/sbin
+export LOCAL_PATH=/usr/local/bin:/usr/local/sbin:/usr/local/go/bin:/usr/local/go
+export OPT_PATH=$HOME/man:/opt/local/bin:/opt/local/sbin
+
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  export EDITOR='mvim -v -u ~/.vimrc.min'
+  export VISTUAL='vim -f'
+  export MAILCONF=$HOME/.mutt
+  export NOTMUCH=$HOME/.mutt/mutt-notmuch-py
+  export JAVA_HOME=$(/usr/libexec/java_home)
+  export PROMPT_LOCAL=""
+  export RVM=$HOME/.rvm/bin
+  export AWS_IAM_HOME=$HOME/IAMCli-1.5.0
+  export CPPFLAGS=-I/opt/X11/include
+  export COREUTILS=/usr/local/opt/coreutils/libexec/gnubin
+  export COREUTILSMAN=/usr/local/opt/coreutils/libexec/gnuman
+  export TERM=rxvt
+
+  # autoenv
+  source /usr/local/opt/autoenv/activate.sh
+else
+  export TERM=screen-256color
+  export PROMPT_LOCAL="%n@%m"
+  export LINUXBREW=$HOME/.linuxbrew/bin
+  export MANPATH="$HOME/.linuxbrew/share/man:$MANPATH"
+  export INFOPATH="$HOME/.linuxbrew/share/info:$INFOPATH"
+  # Until LinuxBrew is fixed, the following is required.
+  # See: https://github.com/Homebrew/linuxbrew/issues/47
+  export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:/usr/local/lib64/pkgconfig:/usr/lib64/pkgconfig:/usr/lib/pkgconfig:/usr/lib/x86_64-linux-gnu/pkgconfig:/usr/lib64/pkgconfig:/usr/share/pkgconfig:$PKG_CONFIG_PATH
+
+  ## Setup linux brew
+  export LINUXBREWHOME=$HOME/.linuxbrew
+  export PATH=$LINUXBREWHOME/bin:$PATH
+  export MANPATH=$LINUXBREWHOME/man:$MANPATH
+  export PKG_CONFIG_PATH=$LINUXBREWHOME/lib64/pkgconfig:$LINUXBREWHOME/lib/pkgconfig:$PKG_CONFIG_PATH
+  export LD_LIBRARY_PATH=$LINUXBREWHOME/lib64:$LINUXBREWHOME/lib:$LD_LIBRARY_PATH
+  export GNUPGHOME=$HOME/.gnupg
+  export EDITOR=vim
+  export VISUAL=vim
+fi
+
+export PATH=$COREUTILS:$LOCAL_PATH:$PATH:$USER_PATH:$OPT_PATH:$SSHFS_PATH:$JAVA_HOME:$LINUXBREW:$AWS_IAM_HOME/bin:$NOTMUCH:$GOPATH/bin
+export MANPATH=$COREUTILSMAN:$MANPATH
+
 # source Prezto
 if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
   source "${ZDOTDIR:-$HOME}/.zprezto/init.zsh"
