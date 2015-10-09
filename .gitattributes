@@ -1,3 +1,4 @@
 local_* filter=git-crypt diff=git-crypt
+runcoms/local_* filter=git-crypt diff=git-crypt
 .git-crypt !filter !diff
 .gitattributes !filter !diff

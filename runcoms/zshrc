@@ -1,47 +1,19 @@
-#q source Prezto
+# source Prezto
 if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
   source "${ZDOTDIR:-$HOME}/.zprezto/init.zsh"
 fi
 
-# local env
-if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/runcoms/local_env" ]]; then
-  source "${ZDOTDIR:-$HOME}/.zprezto/runcoms/local_env"
-fi
-# aliases
-if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/runcoms/local_aliases" ]]; then
-  source "${ZDOTDIR:-$HOME}/.zprezto/runcoms/local_aliases"
-fi
-
-function bb(){
-  knife cookbook upload $@
-  #knife environment from file ~/fastly/Chef/environments/production.json
-}
-
-function runchef(){
-  knife ssh "name:$@" 'sudo chef-client'
-}
-
-function cachechef(){
-  knife ssh "name:$@" 'curl https://gist.githubusercontent.com/sysbot/0a5e701f853665e18a97/raw/bc2046201e3389f075d97c49dcb8b1bb5bada824/migrate | sudo bash && sudo svctl host disable "manualy disable to run chef" && sleep 30 && sudo chef-client && sudo svctl host enable && varnishadm param.set close_client_connections off'
-}
-
-function cacheenable() {
-  ssh $@ 'sudo svctl host enable; varnishadm param.set close_client_connections off'
-}
-
-function cachedisable() {
-  ssh $@ 'sudo svctl host disable "manually disable for chef run"'
-}
-
-function bt(){
-  if [ -e "$HOME/fastly/Chef/cookbooks/$@/metadata.rb" ]; then
-    gsed -i "s/version.*/version \'0.0.2071\'/" $HOME/fastly/Chef/cookbooks/$@/metadata.rb
+# local env, only atttempting to load these if not installed as minimal 
+if [[ ! -s "${ZDOTDIR:-$HOME}/.minimal_shell" ]]; then
+  if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/runcoms/local_env" ]]; then
+    source "${ZDOTDIR:-$HOME}/.zprezto/runcoms/local_env"
   fi
-
-  if [ $? -eq 0 ]; then
-    knife cookbook upload $@
+  # aliases
+  if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/runcoms/local_aliases" ]]; then
+    source "${ZDOTDIR:-$HOME}/.zprezto/runcoms/local_aliases"
   fi
-}
+fi
+
 
 function cmdinstallpkg(){
   # http://apple.stackexchange.com/questions/75684/installing-xcode-via-command-line
@@ -70,9 +42,6 @@ function monitor(){
 CASE_SENSITIVE="true"
 DISABLE_UPDATE_PROMPT=true
 
-# color
-export TERM=rxvt
-# export TERM=screen-256color
 # remote hosts completion [1]
 #[ -f ~/.ssh/config ] && : ${(A)ssh_config_hosts:=${${${${(@M)${(f)"$(<~/.ssh/config)"}:#Host *}#Host }:#*\**}:#*\?*}}
 [ -f ~/.ssh/known_hosts ] && : ${(A)ssh_known_hosts:=${${${(f)"$(<$HOME/.ssh/known_hosts)"}%%\ *}%%,*}}
@@ -152,8 +121,6 @@ function replace()
 
 function vi() {mvim -v -u ~/.vimrc.min $@}
 function vim() {mvim $@}
-alias rick="cd $GOPATH/src/github.com/fastly/rickshaw"
-alias t="cd ~/repos/gotest"
 alias bc="bc -l"
 alias rdns="getent hosts"
 alias mirror="wget --mirror --no-parent --convert-links"
@@ -166,7 +133,6 @@ alias -g WL=' | wc -l'
 alias -g WC=' | wc -c'
 alias tmux='TERM=screen-256color tmux'
 function cwhois(){ /usr/bin/whois -h whois.cymru.com " -v $1"}
-alias gosrc="cd $GOPATH/src/github.com/fastly/"
 alias sha1sum='shasum'
 function og(){ grep -rn "$1" *}
 
@@ -234,8 +200,9 @@ function rproxy() {
   ssh -L 127.0.0.1:8181:$2 -N root@$1
 }
 
-function proxy() {
-  ssh -C2qTnN -D 8080 $1
+function sfproxy() {
+  #ssh -C2qTnN -D 8080 $1
+  ssh util-sf5.hosts.fastly.net+$@
 }
 
 function http() {sudo python -m SimpleHTTPServer $1}
@@ -254,9 +221,6 @@ function sshi()
 
 alias logchef='log "chef"'
 
-function log() {
-  ssh log-sjc320024 "tail -f /data/log/user/current | grep $@"
-}
 
 function whatismyip() { curl ipecho.net/plain }
 
@@ -431,19 +395,14 @@ function kvr(){ knife vault refresh vault $1 }
 function kvu(){ knife vault update vault ${@} }
 
 function pan() {chef generate cookbook $1 -g ~/src/pan}
-function co() {cd $HOME/fastly/Chef/cookbooks/$1}
 function checksum() { shasum -a 256 $1 }
 
 alias gist='gist -c'
 alias reload='source $HOME/.zshrc'
-alias z='vi $HOME/.zshrc'
+alias z='vi $HOME/.zshrc $HOME/.zprezto/runcoms/local_env'
 alias a='vi $HOME/.zprezto/runcoms/local_aliases'
-alias w='vi $HOME/repos/journal/work'
-alias p='vi $HOME/repos/journal/personal'
-#alias e='vi $HOME/.zprezto/runcoms/local_env'
+alias as='source $HOME/.zprezto/runcoms/local_aliases'
 alias kitchen-init='~/src/kitchen-template/init.sh'
-
-function fastkitchen() { cp -r ~/fastly/fst-kitchen/* ./; cp -r ~/fastly/fst-kitchen/.kitchen.yml ./ }
 
 export EC2_URL="https://ec2.us-east-1.amazonaws.com"
 alias ec2useast1="export EC2_URL=https://ec2.us-east-1.amazonaws.com"
@@ -460,57 +419,12 @@ alias ec2east='export AWS_DEFAULT_REGION=us-east-1'
 alias ec2eu='export AWS_DEFAULT_REGION=eu-west-1'
 alias ec2ap='export AWS_DEFAULT_REGION=ap-northeast-1'
 
-# fastly
-alias rancid="ssh net-rancid-sv1"
-alias knownhosts="scp bastion-slsjc1.hosts.fastly.net:/etc/ssh/ssh_known_hosts ~/.ssh/work_hosts"
-function pastoral() {bundle exec $HOME/fastly/pastoral/bin/pastoral ed -c $HOME/.credshed-config.rb $1}
-function jenkin_rm() {
-  WS="/var/lib/jenkins/jenkins/workspace"
-  if [ -z $1 ]; then
-    echo 'Missing required path'
-  else
-    echo "ssh jenkins-slave-sv1 'sudo rm -r $WS/$1'"
-    read -q "REPLY?Are you sure? [y|N] "
-    if [[ $REPLY =~ ^[Yy]$ ]]
-    then
-      ssh jenkins-slave-sv1 "sudo rm -r $WS/$1"
-    fi
-  fi
-}
-
-alias sf="ssh util-sf5.hosts.fastly.net"
-alias loaner="ssh 10.100.20.42"
-alias fw="fw1"
-alias e2="nedge2"
-alias e1="nedge1"
-alias nedge1="TERM=vt100 ssh bao@10.100.200.21"
-alias nedge2="TERM=vt100 ssh bao@10.100.200.22"
-alias fw="fw1"
-alias fw1="TERM=vt100 ssh bao@10.100.200.23"
-alias fw2="TERM=vt100 ssh bao@10.100.200.24"
-alias core1="ssh bao@10.100.200.2"
-alias ocore2="ssh bao@10.100.200.3"
-alias core2="ssh bao@10.100.200.5"
-alias oedge1="ssh bao@10.100.200.11"
-alias oedge2="ssh bao@10.100.200.12"
-alias asa1="ssh bao@10.100.200.15"
-alias asa2="ssh bao@10.100.200.16"
-alias transit1="ssh bao@10.100.200.17"
-alias rs-linx="telnet route-views.linx.routeviews.org"
-alias rs-he="telnet route-server.he.net"
-alias rs-gblx="telnet route-server.gblx.net"
-alias rs-tw="telnet route-server.twtelecom.net"
-alias ff="cd $REPO_ROOT"
 # random
 function vmstart() { vboxheadless --startvm $1 & }
 function h() { heroku ${@} }
 chruby ruby-2.1.3
 
 eval "$(chef shell-init zsh)"
-
-export RICKSHAW_USER='sysbot'
-export RICKSHAW_KEY='/Users/bao/.chef/sysbot.pem'
-
 
 # aad zsh-syntax-highlighting.
 # https://github.com/tarruda/zsh-autosuggestions
