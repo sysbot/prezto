@@ -25,6 +25,13 @@ function cmdinstallpkg(){
   fi
 }
 
+function remote(){
+  if [[ "$TMUX" == "" ]]; then
+    tmux attach -t remote || tmux new -s remote
+    exit 0
+  fi
+}
+
 function work(){
   if [[ "$TMUX" == "" ]]; then
     tmux attach -t work || tmux new -s work
