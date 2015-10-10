@@ -412,6 +412,7 @@ function gpatch { git format-patch $1 --stdout > $2}
 function gcm { git commit . -m "$@" }
 alias gc='git commit -p'
 alias gm='git checkout master && git pull'
+alias gmr='git checkout master && git pull && git submodule foreach git pull origin master'
 alias d='git diff'
 alias gu='git pull'
 alias gp='git push origin HEAD'
