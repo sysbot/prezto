@@ -73,6 +73,7 @@ function cmdinstallpkg(){
 function preztoup(){
   cd ~/.zprezto
   git commit . -m $@
+  git push
   cd ~/dotfiles/prezto
   git checkout master
   git pull
