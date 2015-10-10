@@ -487,20 +487,22 @@ alias ec2ap='export AWS_DEFAULT_REGION=ap-northeast-1'
 function vmstart() { vboxheadless --startvm $1 & }
 function h() { heroku ${@} }
 
-# aad zsh-syntax-highlighting.
-# https://github.com/tarruda/zsh-autosuggestions
-source ~/.zprezto/modules/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+if [ "$(uname -s)" = 'Darwin' ]; then
+  # aad zsh-syntax-highlighting.
+  # https://github.com/tarruda/zsh-autosuggestions
+  source ~/.zprezto/modules/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
-# Load zsh-autosuggestions.
-source ~/.zprezto/modules/zsh-autosuggestions/autosuggestions.zsh
-#
-# Enable autosuggestions automatically.
-zle-line-init() {
-  zle autosuggest-start
-}
-zle -N zle-line-init
+  # Load zsh-autosuggestions.
+  source ~/.zprezto/modules/zsh-autosuggestions/autosuggestions.zsh
 
-# accept suggestions without leaving insert mode
-bindkey '^f' vi-forward-word
-bindkey '^f' vi-forward-blank-word
-bindkey "^I" expand-or-complete
+  # Enable autosuggestions automatically.
+  zle-line-init() {
+    zle autosuggest-start
+  }
+  zle -N zle-line-init
+
+  # accept suggestions without leaving insert mode
+  bindkey '^f' vi-forward-word
+  bindkey '^f' vi-forward-blank-word
+  bindkey "^I" expand-or-complete
+fi
