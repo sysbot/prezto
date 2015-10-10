@@ -5,7 +5,6 @@ export OPT_PATH=$HOME/man:/opt/local/bin:/opt/local/sbin
 
 if [ "$(uname -s)" = 'Darwin' ]; then
   eval "$(hub alias -s)"
-  eval "$(shell-init zsh)"
   export EDITOR='mvim -v -u ~/.vimrc.min'
   export VISTUAL='vim -f'
   export MAILCONF=$HOME/.mutt
@@ -69,6 +68,20 @@ function cmdinstallpkg(){
   else
     echo "Must be in the same dir as the package/dmg file"
   fi
+}
+
+function preztoup(){
+  cd ~/.zprezto
+  git commit . -m $@
+  cd ~/dotfiles/prezto
+  git checkout master
+  git pull
+  cd ~/dotfiles
+  git commit . -m "bump prezto version"
+  git push
+  popd
+  popd
+  popd
 }
 
 function remote(){
