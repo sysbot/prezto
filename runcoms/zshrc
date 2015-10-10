@@ -19,7 +19,7 @@ if [ "$(uname -s)" = 'Darwin' ]; then
   export TERM=rxvt
   function vi() {mvim -v -u ~/.vimrc.min $@}
   function vim() {mvim $@}
-
+  compctl -g '~/.teamocil/*(:t:r)' teamocil
   # autoenv
   source /usr/local/opt/autoenv/activate.sh
 else
@@ -73,7 +73,7 @@ function cmdinstallpkg(){
   fi
 }
 
-function preztoup(){
+function zcm(){
   cd ~/.zprezto
   git commit . -m $@
   git push
