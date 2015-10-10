@@ -3,7 +3,7 @@ export USER_PATH=$HOME/bin:/sbin
 export LOCAL_PATH=/usr/local/bin:/usr/local/sbin:/usr/local/go/bin:/usr/local/go
 export OPT_PATH=$HOME/man:/opt/local/bin:/opt/local/sbin
 
-if [[ "$OSTYPE" == "darwin"* ]]; then
+if [ "$(uname -s)" = 'Darwin' ]; then
   eval "$(hub alias -s)"
   eval "$(shell-init zsh)"
   export EDITOR='mvim -v -u ~/.vimrc.min'
