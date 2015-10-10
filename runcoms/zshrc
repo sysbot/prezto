@@ -17,10 +17,14 @@ if [ "$(uname -s)" = 'Darwin' ]; then
   export COREUTILS=/usr/local/opt/coreutils/libexec/gnubin
   export COREUTILSMAN=/usr/local/opt/coreutils/libexec/gnuman
   export TERM=rxvt
+  function vi() {mvim -v -u ~/.vimrc.min $@}
+  function vim() {mvim $@}
 
   # autoenv
   source /usr/local/opt/autoenv/activate.sh
 else
+  function vi() {vim -v -u ~/.vimrc.min $@}
+  function vim() {vim $@}
   export EDITOR='vim -u ~/.vimrc.min'
   export VISTUAL='vim -f'
   export TERM=screen-256color
@@ -185,8 +189,6 @@ function replace()
   fi
 }
 
-function vi() {mvim -v -u ~/.vimrc.min $@}
-function vim() {mvim $@}
 alias bc="bc -l"
 alias rdns="getent hosts"
 alias mirror="wget --mirror --no-parent --convert-links"
