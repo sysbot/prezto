@@ -81,7 +81,6 @@ function preztoup(){
   git push
   popd
   popd
-  popd
 }
 
 function remote(){
