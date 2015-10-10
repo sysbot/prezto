@@ -85,6 +85,7 @@ function zcm(){
   git push
   popd
   popd
+  popd
 }
 
 function loadkey(){
