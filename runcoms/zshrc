@@ -24,7 +24,6 @@ if [ "$(uname -s)" = 'Darwin' ]; then
   source /usr/local/opt/autoenv/activate.sh
 else
   function vi() {vim -v -u ~/.vimrc.min $@}
-  function vim() {vim $@}
   export EDITOR='vim -u ~/.vimrc.min'
   export VISTUAL='vim -f'
   export TERM=screen-256color
