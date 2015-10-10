@@ -87,6 +87,10 @@ function preztoup(){
   popd
 }
 
+function loadkey(){
+  eval `ssh-agent -s` && remote
+}
+
 function remote(){
   if [[ "$TMUX" == "" ]]; then
     tmux attach -t remote || tmux new -s remote
